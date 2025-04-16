@@ -1,47 +1,60 @@
-#include "http/http_request.hpp"
+#include "http_request.hpp"
 #include <sstream>
+#include <vector>
+#include <iostream>
 
-namespace http{
-    HttpRequest::HttpRequest(int code,const std::string& body)
-    :status_code(code),body(body)
-    {
-        if(body.empty()||(body[0]=='{'&&body.back()=='}')||(body[0]=='['&&body.back()==']')){
-            headers["Content-Type"]="application/json";
-            if(!body.empty()&&body[0]!='{}'&&body[0]!='['){
-                this->body="{\"message\":\""+body+"\"}";
+namespace http {
+
+    HttpRequest::HttpRequest::parse(const std::string& request_str){
+        HttpRequest request;
+        std::istringstream request_stream(request_str);
+        std::string line;
+        // 解析请求行
+        std::getline(request_stream, line);
+        if(!line.empty()&&line.back()=='\r'){
+            line.pop_back();
+        }
+        std::istringstream request_line(line);
+        request_line >> request.method>>request.path;
+        //解析查询参数
+        request.parse_query_params();
+
+        while(std::getline(request_stream, line)&&line!="\r"&&line!=""){
+            if(!line.empty()&&line.back()=='\r'){
+                line.pop_back();
             }
-        }else{
-            headers["Content-Type"]="text/plain";
-        } 
-    }
-    std::string HttpResponse::to_string() const{
-        std::stringstream ss;//创建字符串流
-        //添加状态行
-        ss << "HTTP/1.1 " << status_code << " " << getStatusText(status_code) << "\r\n";
-        //添加Content-Length头部
-        ss << "Content-Length: " << body.length() << "\r\n";
-        //添加其它头部字段
-        for (const auto& header : headers) {
-            ss << header.first << ": " << header.second << "\r\n";
+            size_t colon_pos= line.find(':');//冒号位置
+            if(colon_pos!=std::string::npos){
+                std::string key=line.substr(0,colon_pos);
+                std::string value=line.substr(colon_pos+2);
+                if(!value.empty()&&value[0]=='\r'){
+                    value=value.substr(1);
+                }
+                request.headers[key]=value;
+            }
+
         }
-        
-        ss << "\r\n";//添加空行分割头部和消息体
-        ss << body;//消息体
-        
-        return ss.str();
-    }
-    std::string HttpResponse::getStatusText(int status_code) const{
-        switch (status_code) {
-            case 200: return "OK";//请求成功
-            case 201: return "Created";//请求成功并且资源被创建
-            case 302: return "Found"; // 请求的资源临时移动到新位置
-            case 400: return "Bad Request";// 客户端请求的语法错误，服务器无法理解
-            case 401: return "Unauthorized";// 请求要求用户的身份认证
-            case 403: return "Forbidden";// 服务器理解请求，但拒绝执行
-            case 404: return "Not Found";// 服务器无法找到请求的资源
-            case 409: return "Conflict";// 请求与服务器的当前状态冲突
-            case 500: return "Internal Server Error"; // 服务器内部错误
-            default: return "Unknown";// 未知状态码
+        // 解析请求体
+        auto content_length_it=request.headers.find("Content-Length");
+        if(content_length_it!=request.headers.end()){
+            size_t content_length=std::stoul(content_length_it->second);
+            while(std::getline(request_stream, line)&&(line=="\r"||line=="")){
+                continue;
+            }
         }
+
+        request.body=line;
+        if(!request.body.empty()&&request.body.back()=='\r'){
+            request.body.pop_back();
+        }
+
+        if(request.body.length()<content_length){
+            std::vector<char> remaining_buffer( content_length-request.body.length());
+            request_stream.read(remaining_buffer.data(),remaining_buffer.size());
+            request.body+=std::string(remaining_buffer.data(),request_stream.gcount());
+        }
+        LOG_DEBUG << "Read body with length " << request.body.length() 
+        << " (expected " << content_length << ")";
     }
+    return request;
 }
