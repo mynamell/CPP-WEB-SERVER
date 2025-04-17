@@ -1,0 +1,1 @@
+/usr/bin/c++    -Wall -Wextra -std=c++17 -g -g -O0   CMakeFiles/http_server.dir/http_server.cpp.o CMakeFiles/http_server.dir/http_request.cpp.o CMakeFiles/http_server.dir/http_response.cpp.o CMakeFiles/http_server.dir/main.cpp.o  -o ../../bin/http_server -lpthread 
