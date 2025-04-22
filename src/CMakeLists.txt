@@ -6,6 +6,9 @@ add_executable(http_server
     http_response.cpp     # HTTP响应生成实现
     main.cpp              # 主程序入口
     utils/logger.cpp      # 日志模块实现
+    utils/thread_pool.cpp # 线程池模块实现（新增）
+    utils/timer.cpp       # 定时器模块实现（新增）
+    utils/work_stealing_thread_pool.cpp # 工作窃取线程池模块实现（新增）
 )
 
 # 链接库

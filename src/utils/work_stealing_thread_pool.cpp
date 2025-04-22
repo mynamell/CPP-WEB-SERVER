@@ -74,7 +74,7 @@ WorkStealingThreadPool::WorkStealingThreadPool(size_t numThreads) : stop(false) 
        }
    }
    //窃取任务得函数
-   bool WorkStealingThreadPool::steal_task(){
+   bool WorkStealingThreadPool::steal_task(std::function<void()>& task, size_t current_index){
         size_t num_queues=local_queues.size();//获取队列数量
         size_t start_index=get_random_queue_index(num_queues, current_index);//获取随机队列索引
         //尝试从其它队列窃取任务
