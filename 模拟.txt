@@ -1,159 +1,146 @@
-北京擎天信安科技有限公司面试题解答
-1. 字符串分割与组合
-1.1 字符串分割
-c
-#include <stdio.h>
+#define _CRT_SECURE_NO_WARNINGS
+
+#include<stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char** split_string(const char* str, const char* delimiter, int* count) {
-    if (!str || !delimiter || !count) return NULL;
-    
-    int delimiter_len = strlen(delimiter);
-    if (delimiter_len == 0) return NULL;
-    
-    // 计算分割后的子字符串数量
-    *count = 0;
-    const char* p = str;
-    while ((p = strstr(p, delimiter)) {
-        (*count)++;
-        p += delimiter_len;
-    }
-    (*count)++;
-    
-    // 分配内存
-    char** result = (char**)malloc(*count * sizeof(char*));
-    if (!result) return NULL;
-    
-    // 分割字符串
-    p = str;
-    for (int i = 0; i < *count; i++) {
-        const char* end = strstr(p, delimiter);
-        if (!end) end = str + strlen(str);
-        
-        int len = end - p;
-        result[i] = (char*)malloc(len + 1);
-        if (!result[i]) {
-            // 内存分配失败，释放已分配的内存
-            for (int j = 0; j < i; j++) free(result[j]);
-            free(result);
-            return NULL;
-        }
-        
-        strncpy(result[i], p, len);
-        result[i][len] = '\0';
-        p = end + delimiter_len;
-    }
-    
-    return result;
-}
-1.2 字符串组合
-c
-char* join_strings(char** strings, int count, const char* delimiter) {
-    if (!strings || count <= 0 || !delimiter) return NULL;
-    
-    // 计算总长度
-    int delimiter_len = strlen(delimiter);
-    int total_len = 0;
-    for (int i = 0; i < count; i++) {
-        if (strings[i]) {
-            total_len += strlen(strings[i]);
-            if (i < count - 1) total_len += delimiter_len;
-        }
-    }
-    
-    // 分配内存
-    char* result = (char*)malloc(total_len + 1);
-    if (!result) return NULL;
-    
-    // 组合字符串
-    char* p = result;
-    for (int i = 0; i < count; i++) {
-        if (strings[i]) {
-            int len = strlen(strings[i]);
-            strncpy(p, strings[i], len);
-            p += len;
-            
-            if (i < count - 1) {
-                strncpy(p, delimiter, delimiter_len);
-                p += delimiter_len;
-            }
-        }
-    }
-    *p = '\0';
-    
-    return result;
-}
-2. 找出不大于n的最大质数
-c
-#include <stdbool.h>
-#include <math.h>
+//c实现以下2个接口不能使用语言的基本分割组合函数
+// (1)
+// 字符串拆分成数组，如"ab&&2"通过"&&”做分隔符，
+// 分割得到字符串数组[“ab","2”]实现字符串组合，
+// 如[“ab","2”]通过"&&”分隔符，组合成字符串"ab&&2”
+// (2)
+//实现字符串组合，如[“ab","2”]通过” && "分隔符，组合成字符串"ab && 2”
 
-bool is_prime(int num) {
-    if (num <= 1) return false;
-    if (num == 2) return true;
-    if (num % 2 == 0) return false;
-    
-    int sqrt_num = sqrt(num) + 1;
-    for (int i = 3; i <= sqrt_num; i += 2) {
-        if (num % i == 0) return false;
-    }
-    return true;
+//(1)
+char** split_string(const char* str,const char* delimiter,int *count)
+{
+	 if (!str || !delimiter || !count) return NULL;
+	int delimiter_len = strlen(delimiter);
+	if (delimiter_len == 0) return NULL;
+	*count = 1;
+	const char* p = str;
+	//遍历
+	while ((p=strstr(p,delimiter))!=NULL) {
+		(*count)++;
+		p += delimiter_len;// p后移&&个字符串
+	}
+	char** result = (char**)malloc(*count *sizeof(char*));
+	if (!result) return NULL;
+	//分配指针数组 
+	p = str;
+	for (int i = 0; i < *count; i++) {
+		const char* end = strstr(p,delimiter);
+		if (!end)//没有找到&&说明已经末尾了
+		{
+			end = str + strlen(str);
+		}
+		int len = end - p;
+		result[i] = (char*)malloc(len + 1);
+		if (!result[i]) {
+			// 分配失败，释放已分配的内存
+			for (int j = 0; j < i; j++) free(result[j]);
+			free(result);
+			return NULL;
+		}
+		strncpy(result[i], p, len);
+		result[i][len] = '\0';
+		p = end + delimiter_len;
+	}
+	return result;
 }
 
-int largest_prime_below_n(int n) {
-    if (n < 2) return -1; // 没有质数
-    
-    for (int i = n; i >= 2; i--) {
-        if (is_prime(i)) return i;
-    }
-    
-    return -1; // 不应该执行到这里
-}
-3. 找出1000个数中重复的数
-c
-int find_duplicate(int* nums, int size) {
-    if (!nums || size != 1000) return -1;
-    
-    int seen[1000] = {0};
-    for (int i = 0; i < size; i++) {
-        if (nums[i] < 0 || nums[i] >= 1000) return -1; // 输入无效
-        if (seen[nums[i]]++) return nums[i];
-    }
-    
-    return -1; // 没有找到重复
-}
-4. 约瑟夫环问题
-c
-int last_remaining(int n, int m) {
-    if (n < 1 || m < 1) return -1;
-    
-    int last = 0;
-    for (int i = 2; i <= n; i++) {
-        last = (last + m) % i;
-    }
-    return last + 1; // 转换为1-based编号
-}
-5. 找出所有字母组合
-c
-#include <stdio.h>
-#include <string.h>
-
-void print_combinations(char* prefix, int prefix_len, char start_char) {
-    for (char c = start_char; c <= 'z'; c++) {
-        // 打印当前组合
-        prefix[prefix_len] = c;
-        prefix[prefix_len + 1] = '\0';
-        printf("%s\n", prefix);
-        
-        // 递归处理更长的组合
-        if (c < 'z') {
-            print_combinations(prefix, prefix_len + 1, c + 1);
-        }
-    }
+void free_split_result(char** result,int count) {
+	if (!result) return;
+	for (int i = 0; i < count; i++)
+	{
+		free(result[i]);
+	}
+	free(result);
 }
 
-void all_letter_combinations() {
-    char buffer[27] = {0}; // 最大26个字母+null终止符
-    print_combinations(buffer, 0, 'a');
+char* join_string(char** strings,int count,const char* delimiter) {
+	// 添加参数检查
+	if (!strings || count <= 0 || !delimiter) return NULL;
+	int delimiter_len = strlen(delimiter);
+	int sum_len = 0;//总长度准备后序拼凑
+	for (int i = 0; i < count;i++) {
+		if (strings[i]) {
+			sum_len += strlen(strings[i]);
+			if (i < count - 1) sum_len += delimiter_len;
+		}
+	}
+	char* result = (char*)malloc(sum_len+1);
+	if (!result) return NULL;
+
+	//组合字符串
+	char* p = result;
+	for (int i = 0; i < count; i++)
+	{
+		if (strings[i]) {
+			int len = strlen(strings[i]);
+			strncpy(p, strings[i], len);
+			p += len;
+			if (i < count - 1 && delimiter_len>0) {
+				strncpy(p,delimiter,delimiter_len);
+				p += delimiter_len;
+			}
+		}
+	}
+	*p = '\0';
+	return result;
+}
+
+
+//释放顺序有问题
+
+//int main() {
+//	const char* test_str = "ab&&2&&test&&xyz";
+//	const char* delimiter = "&&";
+//	int count = 0;
+//	char** parts = split_string(test_str,delimiter,&count);
+//	for (int i = 0; i < count; i++)
+//	{
+//		printf("%d,%s\n", i, parts[i]);
+//	}
+//	free_split_result(parts,count);
+//
+//	//(2)
+//	char* combined = join_string(parts,count,delimiter);
+//	printf("%s:\n", combined);
+//
+//	free(combined);
+//	return 0;
+//}
+
+int main() {
+	const char* test_str = "ab&&2&&test&&xyz";
+	const char* delimiter = "&&";
+	int count = 0;
+
+	// (1) 分割字符串
+	char** parts = split_string(test_str, delimiter, &count);
+	if (!parts) {
+		printf("Split failed!\n");
+		return 1;
+	}
+
+	// 打印分割结果
+	for (int i = 0; i < count; i++) {
+		printf("[%d] %s\n", i, parts[i]);
+	}
+
+	// (2) 组合字符串（必须在释放 parts 之前调用）
+	char* combined = join_string(parts, count, delimiter);
+
+	// 释放 parts（确保不再使用 parts）
+	free_split_result(parts, count);
+
+	// 打印组合结果
+	if (combined) {
+		printf("Combined: %s\n", combined);
+		free(combined);  // 释放组合后的字符串
+	}
+
+	return 0;
 }
