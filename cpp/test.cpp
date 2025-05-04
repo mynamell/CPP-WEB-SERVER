@@ -302,8 +302,8 @@ void battle(Warrior& warrior, Mage& mage)
 }
 int main()
 {
-    Warrior warrior("战士", 100, 20, 5, 0.2);
-    Mage mage("法师", 80, 25, 3, 0.3);
+    Warrior warrior("战士", 100, 20, 5, 0.5);
+    Mage mage("法师", 80, 25, 3, 0.5);
 
     battle(warrior, mage);
 
